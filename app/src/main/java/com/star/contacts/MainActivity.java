@@ -1,14 +1,22 @@
 package com.star.contacts;
 
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -30,6 +38,24 @@ public class MainActivity extends AppCompatActivity {
         List<Contract> contracts = getContracts(getContentResolver());
         mAdapter = new ContractAdapter(this, contracts);
         mListView.setAdapter(mAdapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                final Contract contract = (Contract) mAdapter.getItem(position);
+                Log.e(TAG, "contract id == " + contract.contactId);
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                alertDialogBuilder.setTitle("删除联系人").setMessage("确定要删除该联系人吗?").setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        deleteContract(contract.contactId);
+                        dialog.dismiss();
+                    }
+                }).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                }).show();
+            }
+        });
     }
 
     private List<Contract> getContracts(ContentResolver cr) {
@@ -48,7 +74,10 @@ public class MainActivity extends AppCompatActivity {
                             null);
                     while (pCur.moveToNext()) {
                         String phoneNo = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        contracts.add(new Contract(name, phoneNo));
+                        String phoneId = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone._ID));
+                        Log.e(TAG, "name == " + name + ", phoneNo == " + phoneNo +
+                                ", phoneId == " + phoneId);
+                        contracts.add(new Contract(name, phoneNo, phoneId));
                     }
                     pCur.close();
                 }
@@ -58,13 +87,57 @@ public class MainActivity extends AppCompatActivity {
         return contracts;
     }
 
-    public static class Contract {
-        public String displayName;
-        public String phoneNumber;
 
-        public Contract(String displayName, String phoneNumber) {
+    private ProgressDialog mProgressDialog;
+
+
+    private void showProgressDialog() {
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setMessage("Loading...");
+        mProgressDialog.setCancelable(false);
+        mProgressDialog.setCanceledOnTouchOutside(false);
+        mProgressDialog.show();
+    }
+
+    private void hideProgressDialog() {
+        if (mProgressDialog != null) {
+            mProgressDialog.cancel();
+            mProgressDialog = null;
+        }
+    }
+
+    private void deleteContract(String contactId) {
+        showProgressDialog();
+        ArrayList<ContentProviderOperation> ops = new ArrayList<>();
+        ops.add(ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
+                .withSelection(ContactsContract.Data._ID + "=? and " + ContactsContract.Data.MIMETYPE + "=?",
+                        new String[]{contactId, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE})
+                .build());
+        try {
+            getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+        } catch (RemoteException | OperationApplicationException e) {
+            e.printStackTrace();
+        }
+
+        mListView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                hideProgressDialog();
+                mAdapter.setData(getContracts(getContentResolver()));
+                mAdapter.notifyDataSetChanged();
+            }
+        }, 500);
+    }
+
+    public static class Contract {
+        String displayName;
+        String phoneNumber;
+        String contactId;
+
+        Contract(String displayName, String phoneNumber, String contactId) {
             this.displayName = displayName;
             this.phoneNumber = phoneNumber;
+            this.contactId = contactId;
         }
     }
 
@@ -74,6 +147,10 @@ public class MainActivity extends AppCompatActivity {
 
         public ContractAdapter(Context context, List<Contract> contracts) {
             this.context = context;
+            this.contracts = contracts;
+        }
+
+        public void setData(List<Contract> contracts) {
             this.contracts = contracts;
         }
 
