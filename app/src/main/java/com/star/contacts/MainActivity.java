@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,21 +27,34 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mListView = (ListView) findViewById(R.id.list_view);
 
-        List<Contract> contracts = getContracts(this.getContentResolver());
+        List<Contract> contracts = getContracts(getContentResolver());
         mAdapter = new ContractAdapter(this, contracts);
         mListView.setAdapter(mAdapter);
     }
 
-    public List<Contract> getContracts(ContentResolver cr) {
+    private List<Contract> getContracts(ContentResolver cr) {
         List<Contract> contracts = new ArrayList<>();
-        Cursor phones = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null, null, null, null);
-        while (phones.moveToNext()) {
-            String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-            String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-            Log.e(TAG, "name == " + name + ", phoneNumber == " + phoneNumber);
-            contracts.add(new Contract(name, phoneNumber));
+        Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+        if (cur.getCount() > 0) {
+            while (cur.moveToNext()) {
+                String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
+                String name = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+                if (Integer.parseInt(cur.getString(cur.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
+                    Cursor pCur = cr.query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            null,
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                            new String[]{id},
+                            null);
+                    while (pCur.moveToNext()) {
+                        String phoneNo = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                        contracts.add(new Contract(name, phoneNo));
+                    }
+                    pCur.close();
+                }
+            }
         }
-        phones.close();
+        cur.close();
         return contracts;
     }
 
@@ -59,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     class ContractAdapter extends BaseAdapter {
         public Context context;
         public List<Contract> contracts;
+
         public ContractAdapter(Context context, List<Contract> contracts) {
             this.context = context;
             this.contracts = contracts;
