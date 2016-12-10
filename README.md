@@ -1,0 +1,2 @@
+# XiaoMiContactsHelper
+用来清理小米系列手机上联系人重复的工具
