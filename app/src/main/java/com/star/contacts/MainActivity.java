@@ -4,58 +4,50 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
-import android.widget.ListView;
+import android.widget.CheckBox;
 import android.widget.TextView;
+
+import com.star.contacts.view.MergeRecyclerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
-    private ListView mListView;
-    ContractAdapter mAdapter;
+    private RecyclerView mListView;
+    private MergeRecyclerAdapter mergeRecyclerAdapter;
+    private DupContactAdapter mDupContactAdapter;
+    private ContactAdapter mContactAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mListView = (ListView) findViewById(R.id.list_view);
+        mListView = (RecyclerView) findViewById(R.id.list_view);
+        mergeRecyclerAdapter = new MergeRecyclerAdapter();
+        mDupContactAdapter = new DupContactAdapter();
+        mContactAdapter = new ContactAdapter();
+        mergeRecyclerAdapter.addAdapter(mDupContactAdapter);
+        mergeRecyclerAdapter.addAdapter(mContactAdapter);
 
-        List<Contract> contracts = getContracts(getContentResolver());
+        List<Contact> contracts = getContracts(getContentResolver());
+
         mAdapter = new ContractAdapter(this, contracts);
         mListView.setAdapter(mAdapter);
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                final Contract contract = (Contract) mAdapter.getItem(position);
-                Log.e(TAG, "dataId == " + contract.dataId);
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
-                alertDialogBuilder.setTitle("删除联系人").setMessage("确定要删除该联系人吗?").setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        deleteContract(contract.dataId);
-                        dialog.dismiss();
-                    }
-                }).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                }).show();
-            }
-        });
     }
 
     private List<Contract> getContracts(ContentResolver cr) {
@@ -84,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         cur.close();
-        return contracts;
+        return contacts;
     }
 
 
@@ -128,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         }, 500);
     }
 
-    public static class Contract {
+    public static class Contact {
         String displayName;
         String phoneNumber;
         String dataId;//代表data表里面的id
@@ -140,56 +132,200 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class ContractAdapter extends BaseAdapter {
-        public Context context;
-        public List<Contract> contracts;
 
-        public ContractAdapter(Context context, List<Contract> contracts) {
-            this.context = context;
-            this.contracts = contracts;
+    class DupContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements MergeRecyclerAdapter.OnViewTypeCheckListener {
+        private static final int ITEM_HEADER = 0;
+        private static final int ITEM_CONTENT = 1;
+        private List<Contact> mData = new ArrayList<>();
+
+        public DupContactAdapter(List<Contact> mData) {
+            this.mData = mData;
         }
 
-        public void setData(List<Contract> contracts) {
-            this.contracts = contracts;
+        public DupContactAdapter() {
         }
 
-        @Override
-        public int getCount() {
-            return contracts.size();
-        }
-
-        @Override
-        public Object getItem(int i) {
-            return contracts.get(i);
+        public void setData(List<Contact> data) {
+            this.mData = data;
         }
 
         @Override
-        public long getItemId(int i) {
-            return i;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup container) {
-            ViewHolder viewHolder;
-            if (convertView == null) {
-                convertView = LayoutInflater.from(context).inflate(android.R.layout.simple_list_item_2, container, false);
-                viewHolder = new ViewHolder();
-                viewHolder.displayNameTv = (TextView) convertView.findViewById(android.R.id.text1);
-                viewHolder.phoneNumberTv = (TextView) convertView.findViewById(android.R.id.text2);
-                convertView.setTag(viewHolder);
-            } else {
-                viewHolder = (ViewHolder) convertView.getTag();
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            if (viewType == ITEM_HEADER) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_header_1, parent, false);
+                return new HeaderViewHolder(view);
+            } else if (viewType == ITEM_CONTENT) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_content_1, parent, false);
+                return new ContentViewHolder(view);
             }
-            Contract contract = contracts.get(position);
-            viewHolder.displayNameTv.setText(contract.displayName);
-            viewHolder.phoneNumberTv.setText(contract.phoneNumber);
-            return convertView;
+            throw new IllegalStateException("Adapter don't have this viewType " + viewType);
         }
 
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            if (holder instanceof ContentViewHolder) {
+                Contact contact = mData.get(position - 1);
+                ContentViewHolder contentViewHolder = (ContentViewHolder) holder;
+                contentViewHolder.phoneView.setText(contact.phoneNumber);
+                contentViewHolder.nameView.setText(contact.displayName);
+                contentViewHolder.checkBox.setVisibility(View.VISIBLE);
+                contentViewHolder.checkBox.setChecked(false);
+            } else if (holder instanceof HeaderViewHolder) {
+                HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
+                headerViewHolder.titleView.setText("重复联系人");
+                headerViewHolder.checkBox.setVisibility(View.VISIBLE);
+                headerViewHolder.checkBox.setChecked(false);
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            return mData.size() == 0 ? 0 : mData.size() + 1;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            if (position == 0) {
+                return ITEM_HEADER;
+            }
+            return ITEM_CONTENT;
+        }
+
+        @Override
+        public boolean checkViewType(int viewType) {
+            return viewType == ITEM_HEADER || viewType == ITEM_CONTENT;
+        }
+
+        class ContentViewHolder extends RecyclerView.ViewHolder {
+            TextView nameView;
+            TextView phoneView;
+            CheckBox checkBox;
+
+            public ContentViewHolder(View itemView) {
+                super(itemView);
+                nameView = (TextView) itemView.findViewById(R.id.name);
+                phoneView = (TextView) itemView.findViewById(R.id.phone);
+                checkBox = (CheckBox) itemView.findViewById(R.id.checkbox);
+            }
+        }
+
+        class HeaderViewHolder extends RecyclerView.ViewHolder {
+            TextView titleView;
+            CheckBox checkBox;
+
+            public HeaderViewHolder(View itemView) {
+                super(itemView);
+                titleView = (TextView) itemView.findViewById(R.id.title);
+                checkBox = (CheckBox) itemView.findViewById(R.id.checkbox);
+            }
+        }
     }
 
-    static class ViewHolder {
-        TextView displayNameTv;
-        TextView phoneNumberTv;
+    class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements MergeRecyclerAdapter.OnViewTypeCheckListener {
+        private static final int ITEM_HEADER = 2;
+        private static final int ITEM_CONTENT = 3;
+        private List<Contact> mData = new ArrayList<>();
+
+        public ContactAdapter(List<Contact> mData) {
+            this.mData = mData;
+        }
+
+        public ContactAdapter() {
+        }
+
+        public void setData(List<Contact> data) {
+            this.mData = data;
+        }
+
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            if (viewType == ITEM_HEADER) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_header_1, parent, false);
+                return new HeaderViewHolder(view);
+            } else if (viewType == ITEM_CONTENT) {
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_content_1, parent, false);
+                return new ContentViewHolder(view);
+            }
+            throw new IllegalStateException("Adapter don't have this viewType " + viewType);
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            if (holder instanceof ContentViewHolder) {
+                Contact contact = mData.get(position - 1);
+                ContentViewHolder contentViewHolder = (ContentViewHolder) holder;
+                contentViewHolder.phoneView.setText(contact.phoneNumber);
+                contentViewHolder.nameView.setText(contact.displayName);
+            }
+            if (holder instanceof HeaderViewHolder) {
+                HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
+                headerViewHolder.titleView.setText("联系人");
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            return mData.size() == 0 ? 0 : mData.size() + 1;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            if (position == 0) {
+                return ITEM_HEADER;
+            }
+            return ITEM_CONTENT;
+        }
+
+        @Override
+        public boolean checkViewType(int viewType) {
+            return viewType == ITEM_HEADER || viewType == ITEM_CONTENT;
+        }
+
+        class ContentViewHolder extends RecyclerView.ViewHolder {
+            TextView nameView;
+            TextView phoneView;
+            CheckBox checkBox;
+
+            public ContentViewHolder(View itemView) {
+                super(itemView);
+                nameView = (TextView) itemView.findViewById(R.id.name);
+                phoneView = (TextView) itemView.findViewById(R.id.phone);
+                checkBox = (CheckBox) itemView.findViewById(R.id.checkbox);
+            }
+        }
+
+        class HeaderViewHolder extends RecyclerView.ViewHolder {
+            TextView titleView;
+            CheckBox checkBox;
+
+            public HeaderViewHolder(View itemView) {
+                super(itemView);
+                titleView = (TextView) itemView.findViewById(R.id.title);
+                checkBox = (CheckBox) itemView.findViewById(R.id.checkbox);
+            }
+        }
+    }
+
+    private class HandleContactTask extends AsyncTask<Void, Void, String> {
+
+        private List<Contact> mDupContacts;
+        private List<Contact> mContacts;
+        @Override
+        protected String doInBackground(Void... params) {
+            List<Contact> contacts = getContracts(getContentResolver());
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+        }
+
+        @Override
+        protected void onPreExecute() {
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+        }
     }
 }
