@@ -17,10 +17,13 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.star.contacts.view.MergeRecyclerAdapter;
@@ -55,6 +58,26 @@ public class MainActivity extends AppCompatActivity {
 
         mContactTask = new HandleContactTask();
         mContactTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+
+    private boolean mIsDeleteAction = false;
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.clear();
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        if (!mIsDeleteAction) {
+            menu.removeItem(R.id.action_remove);
+        } else {
+            menu.removeItem(R.id.action_search);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -136,7 +159,6 @@ public class MainActivity extends AppCompatActivity {
 
     private ProgressDialog mProgressDialog;
 
-
     private void showProgressDialog() {
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setMessage("Loading...");
@@ -191,6 +213,7 @@ public class MainActivity extends AppCompatActivity {
         private static final int ITEM_HEADER = 0;
         private static final int ITEM_CONTENT = 1;
         private List<Contact> mData = new ArrayList<>();
+        private List<Contact> mCheckedData = new ArrayList<>();
 
         public DupContactAdapter(List<Contact> mData) {
             this.mData = mData;
@@ -215,20 +238,38 @@ public class MainActivity extends AppCompatActivity {
             throw new IllegalStateException("Adapter don't have this viewType " + viewType);
         }
 
+        private void handleMenu() {
+            if (!mIsDeleteAction && mCheckedData.size() > 0) {
+                mIsDeleteAction = true;
+                invalidateOptionsMenu();
+            } else if (mIsDeleteAction && mCheckedData.size() == 0) {
+                mIsDeleteAction = false;
+                invalidateOptionsMenu();
+            }
+        }
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             if (holder instanceof ContentViewHolder) {
-                Contact contact = mData.get(position - 1);
+                final Contact contact = mData.get(position - 1);
                 ContentViewHolder contentViewHolder = (ContentViewHolder) holder;
                 contentViewHolder.phoneView.setText(contact.phoneNumber);
                 contentViewHolder.nameView.setText(contact.displayName);
                 contentViewHolder.checkBox.setVisibility(View.VISIBLE);
                 contentViewHolder.checkBox.setChecked(false);
+                contentViewHolder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                        if (b) {
+                            mCheckedData.add(contact);
+                        } else {
+                            mCheckedData.remove(contact);
+                        }
+                        handleMenu();
+                    }
+                });
             } else if (holder instanceof HeaderViewHolder) {
                 HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
                 headerViewHolder.titleView.setText("重复联系人");
-                headerViewHolder.checkBox.setVisibility(View.VISIBLE);
-                headerViewHolder.checkBox.setChecked(false);
             }
         }
 
