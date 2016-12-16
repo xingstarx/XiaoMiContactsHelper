@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         mergeRecyclerAdapter.addAdapter(mDupContactAdapter);
         mergeRecyclerAdapter.addAdapter(mContactAdapter);
         mListView.setLayoutManager(new LinearLayoutManager(this));
+        mListView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         mListView.setAdapter(mergeRecyclerAdapter);
 
         mContactTask = new HandleContactTask();
