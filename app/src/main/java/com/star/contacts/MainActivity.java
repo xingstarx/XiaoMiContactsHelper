@@ -26,12 +26,16 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
+import com.star.contacts.model.Contact;
+import com.star.contacts.service.UpdateContactService;
 import com.star.contacts.view.MergeRecyclerAdapter;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
@@ -77,8 +81,68 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_remove:
+                handleDeleteContacts();
+                break;
+            case R.id.action_search:
+
+                break;
+        }
         return super.onOptionsItemSelected(item);
     }
+
+    private void handleDeleteContacts() {
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+        alertDialogBuilder.setTitle(R.string.alert_dialog_delete_title).setMessage(R.string.alert_dialog_delete_message).setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                deleteContacts();
+                dialog.dismiss();
+            }
+        }).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        }).show();
+    }
+
+    private void deleteContacts() {
+        List<Contact> contacts = mDupContactAdapter.getCheckedData();
+        if (contacts.size() == 0) {
+            return;
+        }
+        deleteMultiContract(contacts);
+        UpdateContactService.updateContacts(MainActivity.this, (ArrayList<Contact>) contacts);
+    }
+
+    private void deleteContact(Contact contact) {
+        final List<Contact> contacts = new ArrayList<>();
+        contacts.clear();
+        contacts.add(contact);
+        deleteMultiContract(contacts);
+    }
+
+    private void deleteMultiContract(List<Contact> contacts) {
+        showProgressDialog();
+        ArrayList<ContentProviderOperation> ops = new ArrayList<>();
+        for (int i = 0; i < contacts.size(); i++) {
+            Log.e(TAG, "deleteMultiContract contacts.dataId == " +  contacts.get(i).dataId + ", name == " + contacts.get(i).displayName);
+            ops.add(ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
+                    .withSelection(ContactsContract.Data._ID + "=?",
+                            new String[]{contacts.get(i).dataId})
+                    .build());
+        }
+        try {
+            getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+        } catch (RemoteException | OperationApplicationException e) {
+            e.printStackTrace();
+        }
+
+        mContactTask = new HandleContactTask();
+        mContactTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+
 
     @Override
     protected void onDestroy() {
@@ -124,9 +188,10 @@ public class MainActivity extends AppCompatActivity {
                 null);
         while (pCur.moveToNext()) {
             String phoneNo = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-            String phoneId = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone._ID));
-            Log.e(TAG, "name == " + displayName + ", phoneNo == " + phoneNo + ", phoneId == " + phoneId);
-            contacts.add(new Contact(displayName, phoneNo, phoneId));
+            String dataId = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone._ID));//其实是data表中的_id
+            String rawContactId = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.RAW_CONTACT_ID));
+            Log.e(TAG, "name == " + displayName + ", phoneNo == " + phoneNo + ", dataId == " + dataId + ", contactId == " + contactId + ", rawContactId == " + rawContactId);
+            contacts.add(new Contact(displayName, phoneNo, contactId, dataId, rawContactId));
         }
         pCur.close();
         return contacts;
@@ -160,11 +225,13 @@ public class MainActivity extends AppCompatActivity {
     private ProgressDialog mProgressDialog;
 
     private void showProgressDialog() {
-        mProgressDialog = new ProgressDialog(this);
-        mProgressDialog.setMessage("Loading...");
-        mProgressDialog.setCancelable(false);
-        mProgressDialog.setCanceledOnTouchOutside(false);
-        mProgressDialog.show();
+        if (mProgressDialog == null) {
+            mProgressDialog = new ProgressDialog(this);
+            mProgressDialog.setMessage("Loading...");
+            mProgressDialog.setCancelable(false);
+            mProgressDialog.setCanceledOnTouchOutside(false);
+            mProgressDialog.show();
+        }
     }
 
     private void hideProgressDialog() {
@@ -215,6 +282,10 @@ public class MainActivity extends AppCompatActivity {
         private List<Contact> mData = new ArrayList<>();
         private List<Contact> mCheckedData = new ArrayList<>();
 
+        public List<Contact> getCheckedData() {
+            return mCheckedData;
+        }
+
         public DupContactAdapter(List<Contact> mData) {
             this.mData = mData;
         }
@@ -248,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
             if (holder instanceof ContentViewHolder) {
                 final Contact contact = mData.get(position - 1);
                 ContentViewHolder contentViewHolder = (ContentViewHolder) holder;
