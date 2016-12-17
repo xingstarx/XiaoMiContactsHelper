@@ -42,11 +42,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
                 final Contract contract = (Contract) mAdapter.getItem(position);
-                Log.e(TAG, "contract id == " + contract.contactId);
+                Log.e(TAG, "dataId == " + contract.dataId);
                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
                 alertDialogBuilder.setTitle("删除联系人").setMessage("确定要删除该联系人吗?").setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        deleteContract(contract.contactId);
+                        deleteContract(contract.dataId);
                         dialog.dismiss();
                     }
                 }).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -74,10 +74,10 @@ public class MainActivity extends AppCompatActivity {
                             null);
                     while (pCur.moveToNext()) {
                         String phoneNo = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        String phoneId = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone._ID));
+                        String dataId = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone._ID));
                         Log.e(TAG, "name == " + name + ", phoneNo == " + phoneNo +
-                                ", phoneId == " + phoneId);
-                        contracts.add(new Contract(name, phoneNo, phoneId));
+                                ", dataId == " + dataId + ", contactId == " + id);
+                        contracts.add(new Contract(name, phoneNo, dataId));
                     }
                     pCur.close();
                 }
@@ -110,8 +110,7 @@ public class MainActivity extends AppCompatActivity {
         showProgressDialog();
         ArrayList<ContentProviderOperation> ops = new ArrayList<>();
         ops.add(ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
-                .withSelection(ContactsContract.Data._ID + "=? and " + ContactsContract.Data.MIMETYPE + "=?",
-                        new String[]{contactId, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE})
+                .withSelection(ContactsContract.Data._ID + "=?", new String[]{contactId})
                 .build());
         try {
             getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
@@ -132,12 +131,12 @@ public class MainActivity extends AppCompatActivity {
     public static class Contract {
         String displayName;
         String phoneNumber;
-        String contactId;
+        String dataId;//代表data表里面的id
 
-        Contract(String displayName, String phoneNumber, String contactId) {
+        Contract(String displayName, String phoneNumber, String dataId) {
             this.displayName = displayName;
             this.phoneNumber = phoneNumber;
-            this.contactId = contactId;
+            this.dataId = dataId;
         }
     }
 
