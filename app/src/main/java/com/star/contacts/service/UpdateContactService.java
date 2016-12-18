@@ -91,11 +91,25 @@ public class UpdateContactService extends Service {
         return new ArrayList<>(rawContactIds);
     }
 
+    private String getNamedDataId(String contactId) {
+        ContentResolver cr = getContentResolver();
+        Cursor pCur = cr.query(
+                ContactsContract.Data.CONTENT_URI,
+                null,
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ? AND " + ContactsContract.Data.MIMETYPE + " = ?",
+                new String[]{contactId, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE},
+                null);
+        if (pCur.moveToNext()) {
+            return pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName._ID));
+        }
+        return null;
+    }
+
+
     private void deleteRawContacts(Data data) {
         List<String> contactIds = getContactIds(data.contacts);
-        List<String> rawContactIds = getRawContactIds(data.contacts);
-        Log.d(TAG, "deleteRawContacts start, need to delete contactIds is: " + contactIds.toString());
-        Log.d(TAG, "deleteRawContacts start, need to delete rawContactIds is: " + rawContactIds.toString());
+        List<String> dataIds = new ArrayList<>();
+        Log.d(TAG, "删除操作开始，首先列出来可能要删除的contactIds的集合 : " + contactIds.toString());
 
         ContentResolver cr = getContentResolver();
         String selection = ContactsContract.Contacts._ID + " in (" + TextUtils.join(",", contactIds) + ")";
@@ -103,39 +117,46 @@ public class UpdateContactService extends Service {
         while(cur.moveToNext()) {
             String contactId = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
             if (Integer.parseInt(cur.getString(cur.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
-//                String contactId2 = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.NAME_RAW_CONTACT_ID));
-                Log.e(TAG, "your moved a contactId that is " + contactId);
+                Log.e(TAG, "这个contactId == " + contactId + " , 不需要删除，data表中还含有phone类型的记录");
                 contactIds.remove(contactId);
             } else {
-                //查询到data_id,并统计下来
+                String dataId = getNamedDataId(contactId);
+                if (!TextUtils.isEmpty(dataId)) {
+                    dataIds.add(dataId);
+                }
             }
         }
+        Log.d(TAG, "真正需要删除的contactIds的集合 : " + contactIds.toString());
         if (contactIds.size() == 0) {
-            Log.e(TAG, "don't need delete system contacts table or raw_contacts table records!");
+            Log.e(TAG, "此次操作不需要删除系统的contacts表,raw_contacts表中的记录,结束任务");
             return;
         }
-//留下来的就是这种无用的记录在data表中也只有对应的一条
-        //先删除data表中，类型是name的这种记录
-//        ArrayList<ContentProviderOperation> dataOps = new ArrayList<>();
 
-//        ops.add(ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
-//                .withSelection(Data._ID + "=?", new String[]{String.valueOf(dataId)})
-//                .build());
-//        getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-
+        ArrayList<ContentProviderOperation> dataOps = new ArrayList<>();
+        for (String dataId : dataIds) {
+            dataOps.add(ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
+                    .withSelection(ContactsContract.Data._ID + "=?", new String[]{dataId})
+                    .build());
+        }
+        Log.e(TAG, "先删除data表中类型是name的记录, 他们的dataId是 : " + dataIds);
+        try {
+            cr.applyBatch(ContactsContract.AUTHORITY, dataOps);
+        } catch (RemoteException | OperationApplicationException e) {
+        }
 
         String where = ContactsContract.RawContacts.CONTACT_ID + " = ? ";
         ArrayList<ContentProviderOperation> ops = new ArrayList<>();
-        for (String contactId : rawContactIds) {
-            Log.e(TAG, "you will delete contact record, that contactId is " + contactId);
+        for (String contactId : contactIds) {
             ops.add(ContentProviderOperation.newDelete(ContactsContract.RawContacts.CONTENT_URI)
                     .withSelection(where, new String[]{contactId})
                     .build());
         }
-//        try {
-//            cr.applyBatch(ContactsContract.AUTHORITY, ops);
-//        } catch (RemoteException | OperationApplicationException e) {
-//        }
+        Log.e(TAG, "删除完data表中的记录，再删除contacts表，和raw_contacts表中的记录, contactId是 : " + contactIds);
+
+        try {
+            cr.applyBatch(ContactsContract.AUTHORITY, ops);
+        } catch (RemoteException | OperationApplicationException e) {
+        }
     }
 
     @Override
