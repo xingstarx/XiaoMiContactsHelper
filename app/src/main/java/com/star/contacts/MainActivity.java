@@ -21,7 +21,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
@@ -32,10 +31,8 @@ import com.star.contacts.view.MergeRecyclerAdapter;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
@@ -59,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
         mListView.setLayoutManager(new LinearLayoutManager(this));
         mListView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         mListView.setAdapter(mergeRecyclerAdapter);
-
         mContactTask = new HandleContactTask();
         mContactTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
@@ -126,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
         showProgressDialog();
         ArrayList<ContentProviderOperation> ops = new ArrayList<>();
         for (int i = 0; i < contacts.size(); i++) {
-            Log.e(TAG, "deleteMultiContract contacts.dataId == " +  contacts.get(i).dataId + ", name == " + contacts.get(i).displayName);
+            Log.e(TAG, "deleteMultiContract contacts.dataId == " + contacts.get(i).dataId + ", name == " + contacts.get(i).displayName);
             ops.add(ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
                     .withSelection(ContactsContract.Data._ID + "=?",
                             new String[]{contacts.get(i).dataId})
@@ -143,7 +139,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -155,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 用来查询联系人，把相同用户名的id放到一组，类似于{xingxing:100,139,40}这样的形式
+     *
      * @param cr
      * @return
      */
@@ -198,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void generateContracts(ContentResolver cr, Map<String, String> map, List<Contact> dupContacts, List<Contact> contacts) {
-        for(Map.Entry<String, String> entry : map.entrySet()) {
+        for (Map.Entry<String, String> entry : map.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
             if (value.contains(",")) {
@@ -266,12 +262,16 @@ public class MainActivity extends AppCompatActivity {
     public static class Contact {
         String displayName;
         String phoneNumber;
+        String contactId;
         String dataId;//代表data表里面的id
+        String rawContactId;
 
-        Contact(String displayName, String phoneNumber, String dataId) {
+        Contact(String displayName, String phoneNumber, String contactId, String dataId, String rawContactId) {
             this.displayName = displayName;
             this.phoneNumber = phoneNumber;
+            this.contactId = contactId;
             this.dataId = dataId;
+            this.rawContactId = rawContactId;
         }
     }
 
@@ -318,6 +318,7 @@ public class MainActivity extends AppCompatActivity {
                 invalidateOptionsMenu();
             }
         }
+
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
             if (holder instanceof ContentViewHolder) {
@@ -476,6 +477,7 @@ public class MainActivity extends AppCompatActivity {
 
         private List<Contact> mDupContacts = new ArrayList<>();
         private List<Contact> mContacts = new ArrayList<>();
+
         @Override
         protected String doInBackground(Void... params) {
             Map<String, String> map = divideContacts(getContentResolver());
