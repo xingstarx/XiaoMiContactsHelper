@@ -8,15 +8,42 @@ android {
         minSdkVersion 15
         targetSdkVersion 25
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
-    buildTypes {
+
+    signingConfigs {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            storeFile file('signedFile/contactsHelper.jks')
+            keyAlias "${XIAOMI_CONTACTS_HELPER_ALIAS}"
+            storePassword "${XIAOMI_CONTACTS_HELPER_STORE_PWD}"
+            keyPassword "${XIAOMI_CONTACTS_HELPER_KEY_PWD}"
         }
     }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            debuggable true
+
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            output.outputFile = new File(
+                    output.outputFile.parent, "XiaomiContactsHelper-${variant.buildType.name}-${variant.versionName}.apk".toLowerCase())
+        }
+    }
+
 }
 
 dependencies {
