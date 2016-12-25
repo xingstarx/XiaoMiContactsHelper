@@ -53,5 +53,7 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.0.1'
     compile 'com.android.support:recyclerview-v7:25.0.1'
+//    compile 'com.hudomju:swipe-to-dismiss-undo:1.0'
+//    compile 'com.github.hudomju:android-swipe-to-dismiss-undo:master-SNAPSHOT'
     testCompile 'junit:junit:4.12'
 }

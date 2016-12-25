@@ -24,9 +24,14 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.star.contacts.model.Contact;
 import com.star.contacts.service.UpdateContactService;
+import com.star.contacts.util.swipe.OnItemClickListener;
+import com.star.contacts.util.swipe.SwipeToDismissTouchListener;
+import com.star.contacts.util.swipe.SwipeableItemClickListener;
+import com.star.contacts.util.swipe.adapter.RecyclerViewAdapter;
 import com.star.contacts.view.MergeRecyclerAdapter;
 
 import java.util.ArrayList;
@@ -34,9 +39,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.widget.Toast.LENGTH_SHORT;
+
+
 public class MainActivity extends AppCompatActivity {
     public static final String TAG = "MainActivity";
-    private RecyclerView mListView;
+    private RecyclerView mRecyclerView;
     private MergeRecyclerAdapter mergeRecyclerAdapter;
     private DupContactAdapter mDupContactAdapter;
     private ContactAdapter mContactAdapter;
@@ -47,17 +55,60 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mListView = (RecyclerView) findViewById(R.id.list_view);
+        mRecyclerView = (RecyclerView) findViewById(R.id.list_view);
         mergeRecyclerAdapter = new MergeRecyclerAdapter();
         mDupContactAdapter = new DupContactAdapter();
         mContactAdapter = new ContactAdapter();
         mergeRecyclerAdapter.addAdapter(mDupContactAdapter);
         mergeRecyclerAdapter.addAdapter(mContactAdapter);
-        mListView.setLayoutManager(new LinearLayoutManager(this));
-        mListView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        mListView.setAdapter(mergeRecyclerAdapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
+        mRecyclerView.setAdapter(mergeRecyclerAdapter);
+        initView();
         mContactTask = new HandleContactTask();
         mContactTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    }
+
+    private void initView() {
+        final SwipeToDismissTouchListener<RecyclerViewAdapter> touchListener =
+                new SwipeToDismissTouchListener<>(
+                        new RecyclerViewAdapter(mRecyclerView),
+                        new SwipeToDismissTouchListener.DismissCallbacks<RecyclerViewAdapter>() {
+                            @Override
+                            public boolean canDismiss(int position) {
+                                return true;
+                            }
+
+                            @Override
+                            public void onPendingDismiss(RecyclerViewAdapter recyclerView, int position) {
+
+                            }
+
+                            @Override
+                            public void onDismiss(RecyclerViewAdapter view, int position) {
+//                                mergeRecyclerAdapter.remove(position);
+                                mergeRecyclerAdapter.notifyItemRemoved(position);
+                                mergeRecyclerAdapter.notifyItemRangeChanged(position, mergeRecyclerAdapter.getItemCount());
+                            }
+                        });
+        // Dismiss the item automatically after 3 seconds
+        touchListener.setDismissDelay(3000);
+
+        mRecyclerView.setOnTouchListener(touchListener);
+        mRecyclerView.addOnScrollListener((RecyclerView.OnScrollListener)touchListener.makeScrollListener());
+        mRecyclerView.addOnItemTouchListener(new SwipeableItemClickListener(this,
+                new OnItemClickListener() {
+                    @Override
+                    public void onItemClick(View view, int position) {
+                        if (view.getId() == R.id.txt_delete) {
+                            touchListener.processPendingDismisses();
+                        } else if (view.getId() == R.id.txt_undo) {
+                            touchListener.undoPendingDismiss();
+                        } else { // R.id.txt_data
+                            Toast.makeText(MainActivity.this, "Position " + position, LENGTH_SHORT).show();
+                        }
+                    }
+                }));
     }
 
 
@@ -79,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_remove:
-                handleDeleteContacts();
+//                handleDeleteContacts();
                 break;
             case R.id.action_search:
 
@@ -92,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
         alertDialogBuilder.setTitle(R.string.alert_dialog_delete_title).setMessage(R.string.alert_dialog_delete_message).setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-                deleteContacts();
+//                deleteContacts();
                 dialog.dismiss();
             }
         }).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
