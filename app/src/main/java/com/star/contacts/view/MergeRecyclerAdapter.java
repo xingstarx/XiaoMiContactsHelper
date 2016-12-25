@@ -53,6 +53,23 @@ public class MergeRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.View
         throw new IllegalStateException("the sub RecyclerView.Adapter piece need to implements OnViewTypeCheckListener, and checkViewType must contains true condition");
     }
 
+    /**
+     * 根据recyclerview中的position获取到在子adapter中的position
+     * @param position
+     * @return
+     */
+    public int getViewAdapterPosition(int position) {
+        for (int i = 0; i < getPieces().size(); i++) {
+            RecyclerView.Adapter piece = getPieces().get(i);
+            int size = piece.getItemCount();
+            if (position < size) {
+                return position;
+            }
+            position -= size;
+        }
+        return -1;
+    }
+
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         for (int i = 0; i < getPieces().size(); i++) {

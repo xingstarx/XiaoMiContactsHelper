@@ -24,22 +24,16 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.star.contacts.model.Contact;
 import com.star.contacts.service.UpdateContactService;
-import com.star.contacts.util.swipe.OnItemClickListener;
-import com.star.contacts.util.swipe.SwipeToDismissTouchListener;
-import com.star.contacts.util.swipe.SwipeableItemClickListener;
-import com.star.contacts.util.swipe.adapter.RecyclerViewAdapter;
 import com.star.contacts.view.MergeRecyclerAdapter;
+import com.star.contacts.view.SwipeableRecyclerViewTouchListener;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static android.widget.Toast.LENGTH_SHORT;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -64,51 +58,36 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         mRecyclerView.setAdapter(mergeRecyclerAdapter);
-        initView();
+        initItemTouch();
         mContactTask = new HandleContactTask();
         mContactTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
 
-    private void initView() {
-        final SwipeToDismissTouchListener<RecyclerViewAdapter> touchListener =
-                new SwipeToDismissTouchListener<>(
-                        new RecyclerViewAdapter(mRecyclerView),
-                        new SwipeToDismissTouchListener.DismissCallbacks<RecyclerViewAdapter>() {
+
+    private void initItemTouch() {
+        SwipeableRecyclerViewTouchListener swipeDeleteTouchListener =
+                new SwipeableRecyclerViewTouchListener(
+                        this,
+                        mRecyclerView,
+                        R.id.foreground,
+                        R.id.background,
+                        new SwipeableRecyclerViewTouchListener.SwipeListener() {
                             @Override
-                            public boolean canDismiss(int position) {
-                                return true;
+                            public boolean canSwipe(int position) {
+                                return ContactAdapter.ITEM_CONTENT == mergeRecyclerAdapter.getItemViewType(position);
                             }
 
                             @Override
-                            public void onPendingDismiss(RecyclerViewAdapter recyclerView, int position) {
-
+                            public void onDismissedBySwipe(RecyclerView recyclerView, int[] reverseSortedPositions) {
+                                for (int position : reverseSortedPositions) {
+                                    mContactAdapter.remove(mergeRecyclerAdapter.getViewAdapterPosition(position));
+                                }
+                                mergeRecyclerAdapter.notifyDataSetChanged();
                             }
 
-                            @Override
-                            public void onDismiss(RecyclerViewAdapter view, int position) {
-//                                mergeRecyclerAdapter.remove(position);
-                                mergeRecyclerAdapter.notifyItemRemoved(position);
-                                mergeRecyclerAdapter.notifyItemRangeChanged(position, mergeRecyclerAdapter.getItemCount());
-                            }
                         });
-        // Dismiss the item automatically after 3 seconds
-        touchListener.setDismissDelay(3000);
+        mRecyclerView.addOnItemTouchListener(swipeDeleteTouchListener);
 
-        mRecyclerView.setOnTouchListener(touchListener);
-        mRecyclerView.addOnScrollListener((RecyclerView.OnScrollListener)touchListener.makeScrollListener());
-        mRecyclerView.addOnItemTouchListener(new SwipeableItemClickListener(this,
-                new OnItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        if (view.getId() == R.id.txt_delete) {
-                            touchListener.processPendingDismisses();
-                        } else if (view.getId() == R.id.txt_undo) {
-                            touchListener.undoPendingDismiss();
-                        } else { // R.id.txt_data
-                            Toast.makeText(MainActivity.this, "Position " + position, LENGTH_SHORT).show();
-                        }
-                    }
-                }));
     }
 
 
@@ -328,8 +307,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     class DupContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements MergeRecyclerAdapter.OnViewTypeCheckListener {
-        private static final int ITEM_HEADER = 0;
-        private static final int ITEM_CONTENT = 1;
+        public static final int ITEM_HEADER = 0;
+        public static final int ITEM_CONTENT = 1;
         private List<Contact> mData = new ArrayList<>();
         private List<Contact> mCheckedData = new ArrayList<>();
 
@@ -440,8 +419,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     class ContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements MergeRecyclerAdapter.OnViewTypeCheckListener {
-        private static final int ITEM_HEADER = 2;
-        private static final int ITEM_CONTENT = 3;
+        public static final int ITEM_HEADER = 2;
+        public static final int ITEM_CONTENT = 3;
         private List<Contact> mData = new ArrayList<>();
 
         public ContactAdapter(List<Contact> mData) {
@@ -497,6 +476,10 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public boolean checkViewType(int viewType) {
             return viewType == ITEM_HEADER || viewType == ITEM_CONTENT;
+        }
+
+        public void remove(int position) {
+            mData.remove(position - 1);
         }
 
         class ContentViewHolder extends RecyclerView.ViewHolder {
