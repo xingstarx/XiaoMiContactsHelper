@@ -79,10 +79,11 @@ public class MainActivity extends AppCompatActivity {
 
                             @Override
                             public void onDismissedBySwipe(RecyclerView recyclerView, int[] reverseSortedPositions) {
+                                List<Contact> contacts = new ArrayList<>();
                                 for (int position : reverseSortedPositions) {
-                                    mContactAdapter.remove(mergeRecyclerAdapter.getViewAdapterPosition(position));
+                                    contacts.add(mContactAdapter.mData.get(mergeRecyclerAdapter.getViewAdapterPosition(position)));
                                 }
-                                mergeRecyclerAdapter.notifyDataSetChanged();
+                                deleteContacts(contacts);
                             }
 
                         });
@@ -109,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_remove:
-//                handleDeleteContacts();
+                handleDeleteContacts();
                 break;
             case R.id.action_search:
 
@@ -122,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
         alertDialogBuilder.setTitle(R.string.alert_dialog_delete_title).setMessage(R.string.alert_dialog_delete_message).setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
-//                deleteContacts();
+                deleteContacts();
                 dialog.dismiss();
             }
         }).setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -137,15 +138,12 @@ public class MainActivity extends AppCompatActivity {
         if (contacts.size() == 0) {
             return;
         }
-        deleteMultiContract(contacts);
-        UpdateContactService.updateContacts(MainActivity.this, (ArrayList<Contact>) contacts);
+        deleteContacts(contacts);
     }
 
-    private void deleteContact(Contact contact) {
-        final List<Contact> contacts = new ArrayList<>();
-        contacts.clear();
-        contacts.add(contact);
+    private void deleteContacts(List<Contact> contacts) {
         deleteMultiContract(contacts);
+        UpdateContactService.updateContacts(MainActivity.this, (ArrayList<Contact>) contacts);
     }
 
     private void deleteMultiContract(List<Contact> contacts) {
