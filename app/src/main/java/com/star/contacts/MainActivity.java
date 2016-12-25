@@ -15,7 +15,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,6 +26,7 @@ import android.widget.TextView;
 
 import com.star.contacts.model.Contact;
 import com.star.contacts.service.UpdateContactService;
+import com.star.contacts.util.Log;
 import com.star.contacts.view.MergeRecyclerAdapter;
 import com.star.contacts.view.SwipeableRecyclerViewTouchListener;
 
@@ -150,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
         showProgressDialog();
         ArrayList<ContentProviderOperation> ops = new ArrayList<>();
         for (int i = 0; i < contacts.size(); i++) {
-            Log.e(TAG, "deleteMultiContract contacts.dataId == " + contacts.get(i).dataId + ", name == " + contacts.get(i).displayName);
+            Log.d(TAG, "deleteMultiContract contacts.dataId == " + contacts.get(i).dataId + ", name == " + contacts.get(i).displayName);
             ops.add(ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
                     .withSelection(ContactsContract.Data._ID + "=?",
                             new String[]{contacts.get(i).dataId})
@@ -214,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
             String phoneNo = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
             String dataId = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone._ID));//其实是data表中的_id
             String rawContactId = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.RAW_CONTACT_ID));
-            Log.e(TAG, "name == " + displayName + ", phoneNo == " + phoneNo + ", dataId == " + dataId + ", contactId == " + contactId + ", rawContactId == " + rawContactId);
+            Log.d(TAG, "name == " + displayName + ", phoneNo == " + phoneNo + ", dataId == " + dataId + ", contactId == " + contactId + ", rawContactId == " + rawContactId);
             contacts.add(new Contact(displayName, phoneNo, contactId, dataId, rawContactId));
         }
         pCur.close();

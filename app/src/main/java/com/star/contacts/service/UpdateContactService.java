@@ -16,9 +16,9 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.star.contacts.model.Contact;
+import com.star.contacts.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -117,7 +117,7 @@ public class UpdateContactService extends Service {
         while(cur.moveToNext()) {
             String contactId = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
             if (Integer.parseInt(cur.getString(cur.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
-                Log.e(TAG, "这个contactId == " + contactId + " , 不需要删除，data表中还含有phone类型的记录");
+                Log.d(TAG, "这个contactId == " + contactId + " , 不需要删除，data表中还含有phone类型的记录");
                 contactIds.remove(contactId);
             } else {
                 String dataId = getNamedDataId(contactId);
@@ -128,7 +128,7 @@ public class UpdateContactService extends Service {
         }
         Log.d(TAG, "真正需要删除的contactIds的集合 : " + contactIds.toString());
         if (contactIds.size() == 0) {
-            Log.e(TAG, "此次操作不需要删除系统的contacts表,raw_contacts表中的记录,结束任务");
+            Log.d(TAG, "此次操作不需要删除系统的contacts表,raw_contacts表中的记录,结束任务");
             return;
         }
 
@@ -138,7 +138,7 @@ public class UpdateContactService extends Service {
                     .withSelection(ContactsContract.Data._ID + "=?", new String[]{dataId})
                     .build());
         }
-        Log.e(TAG, "先删除data表中类型是name的记录, 他们的dataId是 : " + dataIds);
+        Log.d(TAG, "先删除data表中类型是name的记录, 他们的dataId是 : " + dataIds);
         try {
             cr.applyBatch(ContactsContract.AUTHORITY, dataOps);
         } catch (RemoteException | OperationApplicationException e) {
@@ -151,7 +151,7 @@ public class UpdateContactService extends Service {
                     .withSelection(where, new String[]{contactId})
                     .build());
         }
-        Log.e(TAG, "删除完data表中的记录，再删除contacts表，和raw_contacts表中的记录, contactId是 : " + contactIds);
+        Log.d(TAG, "删除完data表中的记录，再删除contacts表，和raw_contacts表中的记录, contactId是 : " + contactIds);
 
         try {
             cr.applyBatch(ContactsContract.AUTHORITY, ops);
