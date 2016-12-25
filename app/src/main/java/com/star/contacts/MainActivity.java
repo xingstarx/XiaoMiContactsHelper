@@ -42,8 +42,8 @@ public class MainActivity extends AppCompatActivity {
     private MergeRecyclerAdapter mergeRecyclerAdapter;
     private DupContactAdapter mDupContactAdapter;
     private ContactAdapter mContactAdapter;
-
     private HandleContactTask mContactTask;
+    private boolean mIsDeleteAction = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
         mContactTask = new HandleContactTask();
         mContactTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     }
-
 
     private void initItemTouch() {
         SwipeableRecyclerViewTouchListener swipeDeleteTouchListener =
@@ -90,9 +89,6 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.addOnItemTouchListener(swipeDeleteTouchListener);
 
     }
-
-
-    private boolean mIsDeleteAction = false;
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
@@ -264,45 +260,6 @@ public class MainActivity extends AppCompatActivity {
             mProgressDialog = null;
         }
     }
-
-    private void deleteContract(String contactId) {
-        showProgressDialog();
-        ArrayList<ContentProviderOperation> ops = new ArrayList<>();
-        ops.add(ContentProviderOperation.newDelete(ContactsContract.Data.CONTENT_URI)
-                .withSelection(ContactsContract.Data._ID + "=?", new String[]{contactId})
-                .build());
-        try {
-            getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
-        } catch (RemoteException | OperationApplicationException e) {
-            e.printStackTrace();
-        }
-
-        mListView.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                hideProgressDialog();
-//                mAdapter.setData(getContracts(getContentResolver()));
-//                mAdapter.notifyDataSetChanged();
-            }
-        }, 500);
-    }
-
-    public static class Contact {
-        String displayName;
-        String phoneNumber;
-        String contactId;
-        String dataId;//代表data表里面的id
-        String rawContactId;
-
-        Contact(String displayName, String phoneNumber, String contactId, String dataId, String rawContactId) {
-            this.displayName = displayName;
-            this.phoneNumber = phoneNumber;
-            this.contactId = contactId;
-            this.dataId = dataId;
-            this.rawContactId = rawContactId;
-        }
-    }
-
 
     class DupContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements MergeRecyclerAdapter.OnViewTypeCheckListener {
         public static final int ITEM_HEADER = 0;
