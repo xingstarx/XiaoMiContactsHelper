@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">通讯录助手</string>
+    <string name="action_search">搜索</string>
+    <string name="action_remove">删除</string>
+    <string name="deleted">被删除</string>
+    <string name="undo">撤销删除</string>
+</resources>

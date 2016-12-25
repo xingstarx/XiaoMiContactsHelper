@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">XiaoMiContactsHelper</string>
+    <string name="app_name">Cotacts Helper</string>
+    <string name="action_search">Search</string>
+    <string name="action_remove">Delete</string>
+    <string name="alert_dialog_delete_title">删除重复联系人</string>
+    <string name="alert_dialog_delete_message">确定要删除这些联系人吗?</string>
+    <string name="deleted">Deleted</string>
+    <string name="undo">UNDO</string>
 </resources>

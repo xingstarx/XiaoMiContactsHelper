@@ -3,4 +3,8 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="gray_background">#757575</color>
+    <color name="yellow">#FFBB33</color>
+    <dimen name="list_item_padding_sides">16dp</dimen>
+    <dimen name="list_item_height">80dp</dimen>
 </resources>
