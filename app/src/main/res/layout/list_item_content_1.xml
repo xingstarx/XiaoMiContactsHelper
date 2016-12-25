@@ -17,16 +17,15 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center_vertical|left"
-            android:text="@string/toast_deleted"
-            android:textSize="20sp" />
+            android:text="@string/deleted"
+            android:textAppearance="?android:attr/textAppearanceListItem" />
 
-        <ImageView
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:gravity="center"
-            android:scaleX="1.4"
-            android:scaleY="1.4"
-            android:src="@drawable/ic_action_undo" />
+            android:text="@string/undo"
+            android:textAppearance="?android:attr/textAppearanceListItem"
+            android:gravity="center" />
 
     </LinearLayout>
 

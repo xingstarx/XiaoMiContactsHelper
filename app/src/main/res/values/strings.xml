@@ -6,5 +6,4 @@
     <string name="alert_dialog_delete_message">确定要删除这些联系人吗?</string>
     <string name="deleted">Deleted</string>
     <string name="undo">UNDO</string>
-    <string name="toast_deleted">Deleted</string>
 </resources>
