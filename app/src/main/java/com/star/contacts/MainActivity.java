@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                             public void onDismissedBySwipe(RecyclerView recyclerView, int[] reverseSortedPositions) {
                                 List<Contact> contacts = new ArrayList<>();
                                 for (int position : reverseSortedPositions) {
-                                    contacts.add(mContactAdapter.mData.get(mergeRecyclerAdapter.getViewAdapterPosition(position)));
+                                    contacts.add(mContactAdapter.getItem(mergeRecyclerAdapter.getViewAdapterPosition(position)));
                                 }
                                 deleteContacts(contacts);
                             }
@@ -418,6 +418,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public int getItemCount() {
             return mData.size() == 0 ? 0 : mData.size() + 1;
+        }
+
+        public Contact getItem(int position) {
+            if (position == 0) {
+                return null;
+            }
+            return mData.get(position - 1);
         }
 
         @Override
