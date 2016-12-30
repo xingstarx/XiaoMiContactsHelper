@@ -2,8 +2,13 @@
     <string name="app_name">Cotacts Helper</string>
     <string name="action_search">Search</string>
     <string name="action_remove">Delete</string>
+    <string name="action_about">About</string>
     <string name="alert_dialog_delete_title">删除重复联系人</string>
     <string name="alert_dialog_delete_message">确定要删除这些联系人吗?</string>
     <string name="deleted">Deleted</string>
     <string name="undo">UNDO</string>
+    <string name="copy_right">Copyrights © %1$d</string>
+    <string name="check_update">Check for updates</string>
+    <string name="about_version">Version : %s</string>
+    <string name="contacts_description">Cotacts Helper is a useful software that especially for series of xiaomi mobile phones, features simple, open source code, follow material design specifications, is a very useful tool products.</string>
 </resources>

@@ -54,5 +54,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.0.1'
     compile 'com.android.support:recyclerview-v7:25.0.1'
     compile 'com.tencent.bugly:crashreport:2.4.0'
+    compile 'com.github.medyo:android-about-page:1.1.1'
     testCompile 'junit:junit:4.12'
 }

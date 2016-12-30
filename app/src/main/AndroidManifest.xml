@@ -25,6 +25,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".AboutActivity"/>
+
         <service
             android:name=".service.UpdateContactService"
             android:enabled="true"
