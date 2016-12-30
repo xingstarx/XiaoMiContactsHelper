@@ -12,4 +12,9 @@
         android:icon="@drawable/ic_account_remove"
         app:showAsAction="always"
         android:title="@string/action_remove"/>
+
+    <item
+        android:id="@+id/action_about"
+        app:showAsAction="never"
+        android:title="@string/action_about"/>
 </menu>

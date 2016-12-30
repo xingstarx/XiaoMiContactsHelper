@@ -2,6 +2,11 @@
     <string name="app_name">通讯录助手</string>
     <string name="action_search">搜索</string>
     <string name="action_remove">删除</string>
+    <string name="action_about">关于</string>
     <string name="deleted">被删除</string>
     <string name="undo">撤销删除</string>
+    <string name="copy_right">版权所有 © %1$d</string>
+    <string name="check_update">检查更新</string>
+    <string name="about_version">版本 : %s</string>
+    <string name="contacts_description">通讯录助手是一款专用于小米系列的通讯录管理软件,功能简约,代码开源,设计上采用Material Design规范,是一款很实用的工具类产品</string>
 </resources>

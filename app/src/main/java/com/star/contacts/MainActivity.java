@@ -111,6 +111,9 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_search:
 
                 break;
+            case R.id.action_about:
+                AboutActivity.showAbout(MainActivity.this);
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
