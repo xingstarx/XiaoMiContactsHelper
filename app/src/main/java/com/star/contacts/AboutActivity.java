@@ -3,10 +3,13 @@ package com.star.contacts;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -21,6 +24,12 @@ public class AboutActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowTitleEnabled(true);
+            getSupportActionBar().setElevation(0);
+        }
+        setTitle(R.string.action_about);
         View aboutPage = new AboutPage(this)
                 .isRTL(false)
                 .setDescription(getString(R.string.contacts_description))
@@ -33,6 +42,15 @@ public class AboutActivity extends AppCompatActivity {
                 .create();
 
         setContentView(aboutPage);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private Element getUpadateElement() {
@@ -55,12 +73,6 @@ public class AboutActivity extends AppCompatActivity {
         copyRightsElement.setIcon(R.drawable.about_icon_copy_right);
         copyRightsElement.setColor(ContextCompat.getColor(this, mehdi.sakout.aboutpage.R.color.about_item_icon_color));
         copyRightsElement.setGravity(Gravity.CENTER);
-        copyRightsElement.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(AboutActivity.this, copyrights, Toast.LENGTH_SHORT).show();
-            }
-        });
         return copyRightsElement;
     }
 
