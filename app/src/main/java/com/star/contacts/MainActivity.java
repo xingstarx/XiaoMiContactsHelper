@@ -1,5 +1,6 @@
 package com.star.contacts;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentProviderOperation;
@@ -11,6 +12,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -23,6 +25,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.star.contacts.model.Contact;
 import com.star.contacts.service.UpdateContactService;
@@ -35,10 +38,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import pub.devrel.easypermissions.AfterPermissionGranted;
+import pub.devrel.easypermissions.EasyPermissions;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity implements EasyPermissions.PermissionCallbacks{
     public static final String TAG = "MainActivity";
+    private static final int RC_PERMISSION_CONTACTS = 11;
     private RecyclerView mRecyclerView;
+    private View mEmptyView;
     private MergeRecyclerAdapter mergeRecyclerAdapter;
     private DupContactAdapter mDupContactAdapter;
     private ContactAdapter mContactAdapter;
@@ -50,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mRecyclerView = (RecyclerView) findViewById(R.id.list_view);
+        mEmptyView = findViewById(android.R.id.empty);
         mergeRecyclerAdapter = new MergeRecyclerAdapter();
         mDupContactAdapter = new DupContactAdapter();
         mContactAdapter = new ContactAdapter();
@@ -59,8 +68,37 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         mRecyclerView.setAdapter(mergeRecyclerAdapter);
         initItemTouch();
-        mContactTask = new HandleContactTask();
-        mContactTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        loadContacts();
+    }
+
+    @AfterPermissionGranted(RC_PERMISSION_CONTACTS)
+    private void loadContacts() {
+        String[] perms = {Manifest.permission.WRITE_CONTACTS};
+        if (EasyPermissions.hasPermissions(this, perms)) {
+            mContactTask = new HandleContactTask();
+            mContactTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        } else {
+            mRecyclerView.setVisibility(View.GONE);
+            mEmptyView.setVisibility(View.VISIBLE);
+            EasyPermissions.requestPermissions(this, getString(R.string.permission_request_contacts),
+                    RC_PERMISSION_CONTACTS, perms);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+    }
+
+    @Override
+    public void onPermissionsGranted(int requestCode, List<String> list) {
+        Toast.makeText(MainActivity.this, getString(R.string.permission_contacts_grant), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, List<String> list) {
+        Toast.makeText(MainActivity.this, getString(R.string.permission_contacts_deny), Toast.LENGTH_SHORT).show();
     }
 
     private void initItemTouch() {
@@ -490,6 +528,10 @@ public class MainActivity extends AppCompatActivity {
             mDupContactAdapter.setData(mDupContacts);
             mContactAdapter.setData(mContacts);
             mergeRecyclerAdapter.notifyDataSetChanged();
+            if (mDupContacts.size() == 0 && mContacts.size() == 0) {
+                mRecyclerView.setVisibility(View.GONE);
+                mEmptyView.setVisibility(View.VISIBLE);
+            }
         }
 
         @Override

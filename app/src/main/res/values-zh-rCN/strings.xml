@@ -8,4 +8,8 @@
     <string name="check_update">检查更新</string>
     <string name="about_version">版本 : %s</string>
     <string name="contacts_description">通讯录助手是一款专用于小米系列的通讯录管理软件,功能简约,代码开源,设计上采用Material Design规范,是一款很实用的工具类产品</string>
+    <string name="permission_contacts_deny">您取消了授于ContactsHelper操作通讯录的权限</string>
+    <string name="permission_contacts_grant">您授于了ContactsHelper操作通讯录的权限</string>
+    <string name="permission_request_contacts">请允许ContactsHelper访问您的通讯录</string>
+    <string name="activity_main_view_empty_text">没有联系人</string>
 </resources>

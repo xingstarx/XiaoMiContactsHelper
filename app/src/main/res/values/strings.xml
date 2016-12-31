@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Cotacts Helper</string>
+    <string name="app_name">Contacts Helper</string>
     <string name="action_search">Search</string>
     <string name="action_remove">Delete</string>
     <string name="action_about">About</string>
@@ -11,4 +11,8 @@
     <string name="check_update">Check for updates</string>
     <string name="about_version">Version : %s</string>
     <string name="contacts_description">Cotacts Helper is a useful software that especially for series of xiaomi mobile phones, features simple, open source code, follow material design specifications, is a very useful tool products.</string>
+    <string name="permission_contacts_deny">You canceled the permissions granted to the ContactsHelper action contacts</string>
+    <string name="permission_contacts_grant">You have granted permission to ContactsHelper to manipulate your contacts</string>
+    <string name="permission_request_contacts">Please allow ContactsHelper to access your contacts</string>
+    <string name="activity_main_view_empty_text">Empty Contacts</string>
 </resources>
