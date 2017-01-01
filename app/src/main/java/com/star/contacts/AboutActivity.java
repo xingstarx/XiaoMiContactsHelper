@@ -13,6 +13,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.tencent.bugly.beta.Beta;
+
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -60,7 +62,7 @@ public class AboutActivity extends AppCompatActivity {
         element.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO: 16/12/30
+                Beta.checkUpgrade();
             }
         });
         return element;
