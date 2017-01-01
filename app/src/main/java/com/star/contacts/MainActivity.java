@@ -10,6 +10,7 @@ import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
@@ -52,11 +53,13 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private ContactAdapter mContactAdapter;
     private HandleContactTask mContactTask;
     private boolean mIsDeleteAction = false;
+    private Handler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mHandler = new Handler();
         mRecyclerView = (RecyclerView) findViewById(R.id.list_view);
         mEmptyView = findViewById(android.R.id.empty);
         mergeRecyclerAdapter = new MergeRecyclerAdapter();
@@ -120,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                                 for (int position : reverseSortedPositions) {
                                     contacts.add(mContactAdapter.getItem(mergeRecyclerAdapter.getViewAdapterPosition(position)));
                                 }
-                                deleteContacts(contacts);
+                                deleteMultiContract(contacts);
                             }
 
                         });
@@ -175,12 +178,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         if (contacts.size() == 0) {
             return;
         }
-        deleteContacts(contacts);
-    }
-
-    private void deleteContacts(List<Contact> contacts) {
         deleteMultiContract(contacts);
-        UpdateContactService.updateContacts(MainActivity.this, (ArrayList<Contact>) contacts);
     }
 
     private void deleteMultiContract(List<Contact> contacts) {
@@ -198,9 +196,14 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         } catch (RemoteException | OperationApplicationException e) {
             e.printStackTrace();
         }
-
-        mContactTask = new HandleContactTask();
-        mContactTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        UpdateContactService.updateContacts(MainActivity.this, (ArrayList<Contact>) contacts);
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mContactTask = new HandleContactTask();
+                mContactTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            }
+        }, 100);
     }
 
 
