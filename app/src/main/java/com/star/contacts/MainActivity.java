@@ -541,6 +541,12 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         @Override
         protected void onPostExecute(String result) {
             hideProgressDialog();
+            if (mRecyclerView.getVisibility() == View.GONE) {
+                mRecyclerView.setVisibility(View.VISIBLE);
+            }
+            if (mEmptyView.getVisibility() == View.VISIBLE) {
+                mEmptyView.setVisibility(View.GONE);
+            }
             mDupContactAdapter.setData(mDupContacts);
             mDupContactAdapter.resetMenu();
             mContactAdapter.setData(mContacts);
