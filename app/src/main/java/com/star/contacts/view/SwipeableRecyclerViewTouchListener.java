@@ -143,6 +143,15 @@ public class SwipeableRecyclerViewTouchListener implements RecyclerView.OnItemTo
     public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
 
     }
+
+    public int getDismissAnimationRefCount() {
+        return mDismissAnimationRefCount;
+    }
+
+    public int getPendingDismissesSize(){
+        return mPendingDismisses.size();
+    }
+
     private boolean handleTouchEvent(MotionEvent motionEvent) {
         if (motionEvent.getActionMasked() != MotionEvent.ACTION_DOWN && !mSwipeListener.canSwipe(mDownPosition)) {
             return false;

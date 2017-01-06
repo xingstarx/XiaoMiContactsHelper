@@ -54,6 +54,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private HandleContactTask mContactTask;
     private boolean mIsDeleteAction = false;
     private Handler mHandler;
+    private SwipeableRecyclerViewTouchListener mSwipeableRecyclerViewTouchListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,7 +106,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     }
 
     private void initItemTouch() {
-        SwipeableRecyclerViewTouchListener swipeDeleteTouchListener =
+        mSwipeableRecyclerViewTouchListener =
                 new SwipeableRecyclerViewTouchListener(
                         this,
                         mRecyclerView,
@@ -127,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                             }
 
                         });
-        mRecyclerView.addOnItemTouchListener(swipeDeleteTouchListener);
+        mRecyclerView.addOnItemTouchListener(mSwipeableRecyclerViewTouchListener);
 
     }
 
@@ -147,7 +148,11 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_remove:
-                handleDeleteContacts();
+                if (mSwipeableRecyclerViewTouchListener.getPendingDismissesSize() == 0) {
+                    handleDeleteContacts();
+                } else {
+                    Toast.makeText(this, R.string.toast_delete_mutil_contacts_tips, Toast.LENGTH_SHORT).show();
+                }
                 break;
             case R.id.action_search:
 
@@ -348,6 +353,14 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             }
         }
 
+        public void resetMenu() {
+            if (mIsDeleteAction) {
+                mIsDeleteAction = false;
+                mCheckedData.clear();
+                invalidateOptionsMenu();
+            }
+        }
+
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
             if (holder instanceof ContentViewHolder) {
@@ -370,7 +383,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 });
             } else if (holder instanceof HeaderViewHolder) {
                 HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
-                headerViewHolder.titleView.setText("重复联系人");
+                headerViewHolder.titleView.setText(R.string.activity_main_dup_contact_header_title);
             }
         }
 
@@ -455,7 +468,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             }
             if (holder instanceof HeaderViewHolder) {
                 HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
-                headerViewHolder.titleView.setText("联系人");
+                headerViewHolder.titleView.setText(R.string.activity_main_contact_header_title);
             }
         }
 
@@ -529,6 +542,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         protected void onPostExecute(String result) {
             hideProgressDialog();
             mDupContactAdapter.setData(mDupContacts);
+            mDupContactAdapter.resetMenu();
             mContactAdapter.setData(mContacts);
             mergeRecyclerAdapter.notifyDataSetChanged();
             if (mDupContacts.size() == 0 && mContacts.size() == 0) {
