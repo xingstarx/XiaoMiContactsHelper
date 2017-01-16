@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
@@ -155,7 +157,16 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 }
                 break;
             case R.id.action_search:
-
+                if (mDupContactAdapter.getData().size() + mContactAdapter.getData().size() > 0) {
+                    List<Contact> contacts = new CopyOnWriteArrayList<>();
+                    if (mDupContactAdapter.getData().size() > 0) {
+                        contacts.addAll(mDupContactAdapter.getData());
+                    }
+                    if (mContactAdapter.getData().size() > 0) {
+                        contacts.addAll(mContactAdapter.getData());
+                    }
+                    SearchActivity.startSearchContact(this, new ArrayList<Parcelable>(contacts));
+                }
                 break;
             case R.id.action_about:
                 AboutActivity.showAbout(MainActivity.this);
@@ -331,6 +342,10 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             this.mData = data;
         }
 
+        public List<Contact> getData() {
+            return mData;
+        }
+
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             if (viewType == ITEM_HEADER) {
@@ -444,6 +459,10 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
         public void setData(List<Contact> data) {
             this.mData = data;
+        }
+
+        public List<Contact> getData() {
+            return mData;
         }
 
         @Override
