@@ -101,7 +101,7 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
 
     private boolean filter(String text, Contact contact) {
         if (contact.displayName.toLowerCase().contains(text.toLowerCase()) ||
-                contact.phoneNumber.contains(text)) {
+                contact.phoneNumber.replaceAll("\\s", "").contains(text)) {
             return true;
         }
         return false;
