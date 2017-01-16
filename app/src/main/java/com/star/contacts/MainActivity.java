@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 }
                 break;
             case R.id.action_search:
-
+                SearchActivity.startSearchContact(this);
                 break;
             case R.id.action_about:
                 AboutActivity.showAbout(MainActivity.this);
