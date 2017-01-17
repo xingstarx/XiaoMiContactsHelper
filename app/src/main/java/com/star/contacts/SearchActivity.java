@@ -55,6 +55,12 @@ public class SearchActivity extends AppCompatActivity implements MaterialSearchV
         mSearchView.setVoiceSearch(false);
         mSearchView.setEllipsize(true);
         mSearchView.setOnQueryTextListener(this);
+        mSearchView.setOnBackListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
         mContacts = getIntent().getParcelableArrayListExtra(ARG_CONTACTS);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));

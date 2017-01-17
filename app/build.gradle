@@ -53,10 +53,9 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.0.1'
     compile 'com.android.support:recyclerview-v7:25.0.1'
-//    compile 'com.tencent.bugly:crashreport:2.4.0'
     compile 'com.tencent.bugly:crashreport_upgrade:latest.release'
     compile 'com.github.medyo:android-about-page:1.1.1'
     compile 'pub.devrel:easypermissions:0.2.1'
-    compile 'com.miguelcatalan:materialsearchview:1.4.0'
+    compile 'com.github.xingstarx:MaterialSearchView:v1.4.2'
     testCompile 'junit:junit:4.12'
 }
