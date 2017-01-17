@@ -18,4 +18,5 @@
     <string name="activity_main_dup_contact_header_title">Duplicate Contacts</string>
     <string name="activity_main_contact_header_title">Contacts</string>
     <string name="toast_delete_mutil_contacts_tips">In contact Remove the animation process execution, can not perform the operation while delete duplicate contacts</string>
+    <string name="toast_activity_search_copy_content">copied contacts</string>
 </resources>

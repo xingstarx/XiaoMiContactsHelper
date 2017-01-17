@@ -15,4 +15,5 @@
     <string name="activity_main_dup_contact_header_title">重复联系人</string>
     <string name="activity_main_contact_header_title">联系人</string>
     <string name="toast_delete_mutil_contacts_tips">在联系人删除动画的执行过程中，不能够同时执行重复联系人的删除操作</string>
+    <string name="toast_activity_search_copy_content">拷贝联系人</string>
 </resources>

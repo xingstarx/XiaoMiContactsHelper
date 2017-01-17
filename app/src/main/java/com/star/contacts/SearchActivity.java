@@ -1,9 +1,12 @@
 package com.star.contacts;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -18,7 +21,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.miguelcatalan.materialsearchview.MaterialSearchView;
 import com.star.contacts.model.Contact;
@@ -38,6 +43,18 @@ public class SearchActivity extends AppCompatActivity implements MaterialSearchV
     private MaterialSearchView mSearchView;
     private ArrayList<Contact> mContacts;
     private ContactAdapter mContactAdapter;
+
+    @NonNull
+    private AdapterView.OnItemClickListener mOnItemClickListener = new AdapterView.OnItemClickListener() {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            Contact contact = mContactAdapter.getDatas().get(position);
+            ClipboardManager clipboard = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipData clip = ClipData.newPlainText("contacts", contact.displayName + ", " + contact.phoneNumber);
+            clipboard.setPrimaryClip(clip);
+            Toast.makeText(SearchActivity.this, R.string.toast_activity_search_copy_content, Toast.LENGTH_SHORT).show();
+        }
+    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -66,6 +83,7 @@ public class SearchActivity extends AppCompatActivity implements MaterialSearchV
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
         mContactAdapter = new ContactAdapter(mContacts);
+        mContactAdapter.setOnItemClickListener(mOnItemClickListener);
         mRecyclerView.setAdapter(mContactAdapter);
     }
 
@@ -132,6 +150,16 @@ public class SearchActivity extends AppCompatActivity implements MaterialSearchV
             this.mDatas = datas;
         }
 
+        private AdapterView.OnItemClickListener mOnItemClickListener;
+
+        public void setOnItemClickListener(AdapterView.OnItemClickListener onItemClickListener) {
+            mOnItemClickListener = onItemClickListener;
+        }
+
+        public List<Contact> getDatas() {
+            return mDatas;
+        }
+
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(SearchActivity.this).inflate(R.layout.activity_search_list_item, parent, false);
@@ -139,11 +167,20 @@ public class SearchActivity extends AppCompatActivity implements MaterialSearchV
         }
 
         @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
             ViewHolder viewHolder = (ViewHolder) holder;
             Contact contact = mDatas.get(position);
             viewHolder.phoneView.setText(contact.phoneNumber);
             viewHolder.nameView.setText(contact.displayName);
+            if (mOnItemClickListener != null) {
+                viewHolder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        mOnItemClickListener.onItemClick(null, v, holder.getAdapterPosition(), holder.getItemId());
+                        return true;
+                    }
+                });
+            }
         }
 
         @Override
