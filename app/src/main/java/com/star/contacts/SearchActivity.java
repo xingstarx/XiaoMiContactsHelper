@@ -11,6 +11,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -19,6 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.miguelcatalan.materialsearchview.MaterialSearchView;
 import com.star.contacts.model.Contact;
 
 import java.util.ArrayList;
@@ -28,24 +30,32 @@ import java.util.List;
  * Created by xiongxingxing on 17/1/16.
  */
 
-public class SearchActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
+public class SearchActivity extends AppCompatActivity implements MaterialSearchView.OnQueryTextListener {
     public static final String TAG = "SearchActivity";
     private static final String ARG_CONTACTS = "contacts";
     private RecyclerView mRecyclerView;
-    private SearchView mSearchView;
+    private Toolbar mToolbar;
+    private MaterialSearchView mSearchView;
     private ArrayList<Contact> mContacts;
     private ContactAdapter mContactAdapter;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_search);
+        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        mSearchView = (MaterialSearchView) findViewById(R.id.search_view);
+        setSupportActionBar(mToolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowTitleEnabled(true);
             getSupportActionBar().setElevation(0);
         }
-        setContentView(R.layout.activity_search);
-        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        mSearchView.setVoiceSearch(false);
+        mSearchView.setEllipsize(true);
+        mSearchView.setOnQueryTextListener(this);
+
         mContacts = getIntent().getParcelableArrayListExtra(ARG_CONTACTS);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mRecyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
@@ -62,9 +72,9 @@ public class SearchActivity extends AppCompatActivity implements SearchView.OnQu
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_search, menu);
-        mSearchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.action_search));
-        mSearchView.setIconified(false);
-        mSearchView.setOnQueryTextListener(this);
+        MenuItem item = menu.findItem(R.id.action_search);
+        mSearchView.setMenuItem(item);
+        mSearchView.showSearch(false);
         return true;
     }
 

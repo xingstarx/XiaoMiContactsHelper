@@ -28,7 +28,7 @@
 
         <activity android:name=".AboutActivity"/>
 
-        <activity android:name=".SearchActivity"/>
+        <activity android:name=".SearchActivity" android:theme="@style/AppTheme.NoActionBar"/>
 
         <activity
             android:name="com.tencent.bugly.beta.ui.BetaActivity"
