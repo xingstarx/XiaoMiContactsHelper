@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:name=".Application"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity" android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -26,12 +26,13 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".AboutActivity"/>
+        <activity android:name=".AboutActivity" android:screenOrientation="portrait" />
 
-        <activity android:name=".SearchActivity" android:theme="@style/AppTheme.NoActionBar"/>
+        <activity android:name=".SearchActivity" android:screenOrientation="portrait" android:theme="@style/AppTheme.NoActionBar"/>
 
         <activity
             android:name="com.tencent.bugly.beta.ui.BetaActivity"
+            android:screenOrientation="portrait"
             android:theme="@android:style/Theme.Translucent" />
         <service
             android:name=".service.UpdateContactService"
