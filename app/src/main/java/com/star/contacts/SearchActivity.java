@@ -1,13 +1,17 @@
 package com.star.contacts;
 
+import android.Manifest;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
@@ -31,6 +35,8 @@ import com.star.contacts.model.Contact;
 import java.util.ArrayList;
 import java.util.List;
 
+import pub.devrel.easypermissions.EasyPermissions;
+
 /**
  * Created by xiongxingxing on 17/1/16.
  */
@@ -49,7 +55,7 @@ public class SearchActivity extends AppCompatActivity implements MaterialSearchV
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             Contact contact = mContactAdapter.getDatas().get(position);
-            ClipboardManager clipboard = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             ClipData clip = ClipData.newPlainText("contacts", contact.displayName + ", " + contact.phoneNumber);
             clipboard.setPrimaryClip(clip);
             Toast.makeText(SearchActivity.this, R.string.toast_activity_search_copy_content, Toast.LENGTH_SHORT).show();
@@ -125,7 +131,7 @@ public class SearchActivity extends AppCompatActivity implements MaterialSearchV
 
     private List<Contact> filterContacts(String newText) {
         List<Contact> contacts = new ArrayList<>();
-        for(Contact contact : mContacts) {
+        for (Contact contact : mContacts) {
             if (filter(newText, contact)) {
                 contacts.add(contact);
             }
@@ -169,7 +175,7 @@ public class SearchActivity extends AppCompatActivity implements MaterialSearchV
         @Override
         public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
             ViewHolder viewHolder = (ViewHolder) holder;
-            Contact contact = mDatas.get(position);
+            final Contact contact = mDatas.get(position);
             viewHolder.phoneView.setText(contact.phoneNumber);
             viewHolder.nameView.setText(contact.displayName);
             if (mOnItemClickListener != null) {
@@ -181,6 +187,15 @@ public class SearchActivity extends AppCompatActivity implements MaterialSearchV
                     }
                 });
             }
+            viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contact.phoneNumber));
+                    if (EasyPermissions.hasPermissions(SearchActivity.this, Manifest.permission.CALL_PHONE)) {
+                        startActivity(intent);
+                    }
+                }
+            });
         }
 
         @Override

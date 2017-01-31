@@ -6,8 +6,10 @@ import android.app.ProgressDialog;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -396,6 +398,15 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                         handleMenu();
                     }
                 });
+                contentViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contact.phoneNumber));
+                        if (EasyPermissions.hasPermissions(MainActivity.this, Manifest.permission.CALL_PHONE)) {
+                            startActivity(intent);
+                        }
+                    }
+                });
             } else if (holder instanceof HeaderViewHolder) {
                 HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
                 headerViewHolder.titleView.setText(R.string.activity_main_dup_contact_header_title);
@@ -480,10 +491,19 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             if (holder instanceof ContentViewHolder) {
-                Contact contact = mData.get(position - 1);
+                final Contact contact = mData.get(position - 1);
                 ContentViewHolder contentViewHolder = (ContentViewHolder) holder;
                 contentViewHolder.phoneView.setText(contact.phoneNumber);
                 contentViewHolder.nameView.setText(contact.displayName);
+                contentViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contact.phoneNumber));
+                        if (EasyPermissions.hasPermissions(MainActivity.this, Manifest.permission.CALL_PHONE)) {
+                            startActivity(intent);
+                        }
+                    }
+                });
             }
             if (holder instanceof HeaderViewHolder) {
                 HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
