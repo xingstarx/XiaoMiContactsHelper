@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
     @AfterPermissionGranted(RC_PERMISSION_CONTACTS)
     private void loadContacts() {
-        String[] perms = {Manifest.permission.WRITE_CONTACTS};
+        String[] perms = {Manifest.permission.WRITE_CONTACTS, Manifest.permission.CALL_PHONE};
         if (EasyPermissions.hasPermissions(this, perms)) {
             mContactTask = new HandleContactTask();
             mContactTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
