@@ -101,12 +101,10 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
     @Override
     public void onPermissionsGranted(int requestCode, List<String> list) {
-        Toast.makeText(MainActivity.this, getString(R.string.permission_contacts_grant), Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onPermissionsDenied(int requestCode, List<String> list) {
-        Toast.makeText(MainActivity.this, getString(R.string.permission_contacts_deny), Toast.LENGTH_SHORT).show();
     }
 
     private void initItemTouch() {

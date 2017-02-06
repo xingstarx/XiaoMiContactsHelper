@@ -14,7 +14,7 @@
     <string name="permission_contacts_deny">You canceled the permissions granted to the ContactsHelper action contacts</string>
     <string name="permission_contacts_grant">You have granted permission to ContactsHelper to manipulate your contacts</string>
     <string name="permission_request_contacts">Please allow ContactsHelper to access your contacts</string>
-    <string name="activity_main_view_empty_text">Empty Contacts</string>
+    <string name="activity_main_view_empty_text">Empty Contacts or No Contacts Permission</string>
     <string name="activity_main_dup_contact_header_title">Duplicate Contacts</string>
     <string name="activity_main_contact_header_title">Contacts</string>
     <string name="toast_delete_mutil_contacts_tips">In contact Remove the animation process execution, can not perform the operation while delete duplicate contacts</string>
