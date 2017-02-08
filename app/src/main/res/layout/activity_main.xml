@@ -17,7 +17,6 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:drawablePadding="5dp"
-        android:drawableTop="@drawable/ic_phone_contacts_black"
         android:text="@string/activity_main_view_empty_text"
         android:textSize="18sp"
         android:visibility="gone" />

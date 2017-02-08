@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -16,7 +17,10 @@ import android.os.Handler;
 import android.os.Parcelable;
 import android.os.RemoteException;
 import android.provider.ContactsContract;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
+import android.support.graphics.drawable.VectorDrawableCompat;
+import android.support.v4.widget.TextViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -51,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     public static final String TAG = "MainActivity";
     private static final int RC_PERMISSION_CONTACTS = 11;
     private RecyclerView mRecyclerView;
-    private View mEmptyView;
+    private TextView mEmptyView;
     private MergeRecyclerAdapter mergeRecyclerAdapter;
     private DupContactAdapter mDupContactAdapter;
     private ContactAdapter mContactAdapter;
@@ -66,7 +70,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         setContentView(R.layout.activity_main);
         mHandler = new Handler();
         mRecyclerView = (RecyclerView) findViewById(R.id.list_view);
-        mEmptyView = findViewById(android.R.id.empty);
+        mEmptyView = (TextView) findViewById(android.R.id.empty);
+        setDrawableTop(mEmptyView, R.drawable.ic_phone_contacts_black);
         mergeRecyclerAdapter = new MergeRecyclerAdapter();
         mDupContactAdapter = new DupContactAdapter();
         mContactAdapter = new ContactAdapter();
@@ -78,6 +83,12 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         initItemTouch();
         loadContacts();
     }
+
+    public void setDrawableTop(TextView textView, @DrawableRes int resourceId) {
+        Drawable drawable = VectorDrawableCompat.create(textView.getResources(), resourceId, textView.getContext().getTheme());
+        TextViewCompat.setCompoundDrawablesRelativeWithIntrinsicBounds(textView, null, drawable, null, null);
+    }
+
 
     @AfterPermissionGranted(RC_PERMISSION_CONTACTS)
     private void loadContacts() {
