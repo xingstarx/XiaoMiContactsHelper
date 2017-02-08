@@ -504,7 +504,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 ContentViewHolder contentViewHolder = (ContentViewHolder) holder;
                 contentViewHolder.phoneView.setText(contact.phoneNumber);
                 contentViewHolder.nameView.setText(contact.displayName);
-                contentViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+                contentViewHolder.foregroundView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contact.phoneNumber));
@@ -553,12 +553,14 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             TextView nameView;
             TextView phoneView;
             CheckBox checkBox;
+            View foregroundView;
 
             public ContentViewHolder(View itemView) {
                 super(itemView);
                 nameView = (TextView) itemView.findViewById(R.id.name);
                 phoneView = (TextView) itemView.findViewById(R.id.phone);
                 checkBox = (CheckBox) itemView.findViewById(R.id.checkbox);
+                foregroundView = itemView.findViewById(R.id.foreground);
             }
         }
 
