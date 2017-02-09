@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -31,6 +32,7 @@ import android.widget.Toast;
 
 import com.miguelcatalan.materialsearchview.MaterialSearchView;
 import com.star.contacts.model.Contact;
+import com.star.contacts.util.MIUIUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -190,6 +192,13 @@ public class SearchActivity extends AppCompatActivity implements MaterialSearchV
             viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && MIUIUtils.isMIUI()) {
+                        //public static final int OP_CALL_PHONE = 13;
+                        if (!MIUIUtils.checkOp(SearchActivity.this, 13)) {
+                            MIUIUtils.openMiuiPermissionActivity(SearchActivity.this);
+                            return;
+                        }
+                    }
                     Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contact.phoneNumber));
                     if (EasyPermissions.hasPermissions(SearchActivity.this, Manifest.permission.CALL_PHONE)) {
                         startActivity(intent);
