@@ -1,8 +1,10 @@
 package com.star.contacts;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.AppOpsManager;
 import android.app.ProgressDialog;
 import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
@@ -17,6 +19,7 @@ import android.database.Cursor;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,6 +34,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -44,6 +48,7 @@ import android.widget.Toast;
 import com.star.contacts.model.Contact;
 import com.star.contacts.service.UpdateContactService;
 import com.star.contacts.util.Log;
+import com.star.contacts.util.MIUIUtils;
 import com.star.contacts.view.MergeRecyclerAdapter;
 import com.star.contacts.view.SwipeableRecyclerViewTouchListener;
 
@@ -123,65 +128,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
     @Override
     public void onPermissionsDenied(int requestCode, List<String> list) {
-    }
-
-    /**
-     * 经测试V5版本是有区别的
-     *
-     * @param context
-     */
-    public void openMiuiPermissionActivity(Context context) {
-        Intent intent = new Intent("miui.intent.action.APP_PERM_EDITOR");
-
-        if ("V5".equals(getProperty())) {
-            PackageInfo pInfo = null;
-            try {
-                pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            } catch (PackageManager.NameNotFoundException e) {
-                android.util.Log.e("canking", "error");
-            }
-            intent.setClassName("com.miui.securitycenter", "com.miui.securitycenter.permission.AppPermissionsEditor");
-            intent.putExtra("extra_package_uid", pInfo.applicationInfo.uid);
-        } else {
-            intent.setClassName("com.miui.securitycenter", "com.miui.permcenter.permissions.AppPermissionsEditorActivity");
-            intent.putExtra("extra_pkgname", context.getPackageName());
-        }
-
-        if (isActivityAvailable(context, intent)) {
-            if (context instanceof Activity) {
-                Activity a = (Activity) context;
-                a.startActivityForResult(intent, 2);
-            }
-        } else {
-            android.util.Log.e("canking", "Intent is not available!");
-        }
-    }
-
-    public static String getProperty() {
-        String property = "null";
-        android.util.Log.e("TEST", "Build.MANUFACTURER == " + Build.MANUFACTURER);
-        if (!"Xiaomi".equals(Build.MANUFACTURER)) {
-            return property;
-        }
-        try {
-            Class<?> spClazz = Class.forName("android.os.SystemProperties");
-            Method method = spClazz.getDeclaredMethod("get", String.class, String.class);
-            property = (String) method.invoke(spClazz, "ro.miui.ui.version.name", null);
-            android.util.Log.e("TEST", "property == " + property);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return property;
-    }
-
-    public static boolean isActivityAvailable(Context cxt, Intent intent) {
-        PackageManager pm = cxt.getPackageManager();
-        if (pm == null) {
-            return false;
-        }
-        List<ResolveInfo> list = pm.queryIntentActivities(
-                intent, PackageManager.MATCH_DEFAULT_ONLY);
-        return list != null && list.size() > 0;
     }
 
     private void initItemTouch() {
@@ -476,10 +422,16 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 contentViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && MIUIUtils.isMIUI()) {
+                            //public static final int OP_CALL_PHONE = 13;
+                            if (!MIUIUtils.checkOp(MainActivity.this, 13)) {
+                                MIUIUtils.openMiuiPermissionActivity(MainActivity.this);
+                                return;
+                            }
+                        }
                         Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contact.phoneNumber));
-                        openMiuiPermissionActivity(MainActivity.this);
                         if (EasyPermissions.hasPermissions(MainActivity.this, Manifest.permission.CALL_PHONE)) {
-//                            startActivity(intent);
+                            startActivity(intent);
                         }
                     }
                 });
@@ -574,6 +526,13 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 contentViewHolder.foregroundView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && MIUIUtils.isMIUI()) {
+                            //public static final int OP_CALL_PHONE = 13;
+                            if (!MIUIUtils.checkOp(MainActivity.this, 13)) {
+                                MIUIUtils.openMiuiPermissionActivity(MainActivity.this);
+                                return;
+                            }
+                        }
                         Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + contact.phoneNumber));
                         if (EasyPermissions.hasPermissions(MainActivity.this, Manifest.permission.CALL_PHONE)) {
                             startActivity(intent);
