@@ -5,13 +5,14 @@ import android.app.Activity;
 import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Environment;
-import android.text.TextUtils;
+import android.provider.Settings;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,6 +30,7 @@ import java.util.Set;
  */
 
 public final class MIUIUtils {
+    public static final String TAG = "MIUIUtils";
     private static final String KEY_MIUI_VERSION_CODE = "ro.miui.ui.version.code";
     private static final String KEY_MIUI_VERSION_NAME = "ro.miui.ui.version.name";
     private static final String KEY_MIUI_INTERNAL_STORAGE = "ro.miui.internal.storage";
@@ -62,7 +64,7 @@ public final class MIUIUtils {
                 e.printStackTrace();
             }
         } else {
-            android.util.Log.e("MIUIUtils", "Below API 19 cannot invoke!");
+            Log.e(TAG, "Below API 19 cannot invoke!");
         }
         return false;
     }
@@ -77,33 +79,93 @@ public final class MIUIUtils {
         return null;
     }
 
+    /**
+     * 小米 ROM 权限申请
+     */
     public static void openMiuiPermissionActivity(Context context) {
-        Intent intent = new Intent("miui.intent.action.APP_PERM_EDITOR");
-        if (TextUtils.equals("V5", getMIUIVersionName())) {
-            PackageInfo pInfo;
-            try {
-                pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
-                return;
-            }
-            intent.setClassName("com.miui.securitycenter", "com.miui.securitycenter.permission.AppPermissionsEditor");
-            intent.putExtra("extra_package_uid", pInfo.applicationInfo.uid);
-        } else {
-            intent.setClassName("com.miui.securitycenter", "com.miui.permcenter.permissions.AppPermissionsEditorActivity");
-            intent.putExtra("extra_pkgname", context.getPackageName());
-        }
-        if (isActivityAvailable(context, intent)) {
-            if (context instanceof Activity) {
-                Activity a = (Activity) context;
-                a.startActivityForResult(intent, 2);
-            }
-        } else {
-            android.util.Log.e("MIUIUtils", "Intent is not available!");
+        int versionCode = Integer.parseInt(getMIUIVersionName().substring(1));
+        Log.e(TAG, "this is a special MIUI rom version, its version code " + versionCode);
+        if (versionCode == 5) {
+            goToMiuiPermissionActivity_V5(context);
+        } else if (versionCode == 6) {
+            goToMiuiPermissionActivity_V6(context);
+        } else if (versionCode == 7) {
+            goToMiuiPermissionActivity_V7(context);
+        } else if (versionCode == 8) {
+            goToMiuiPermissionActivity_V8(context);
         }
     }
 
-    public static boolean isActivityAvailable(Context cxt, Intent intent) {
+    /**
+     * 小米 V5 版本 ROM权限申请
+     */
+    public static void goToMiuiPermissionActivity_V5(Context context) {
+        String packageName = context.getPackageName();
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", packageName, null);
+        intent.setData(uri);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if (isIntentAvailable(context, intent)) {
+            startActivityForResult(context, intent);
+        } else {
+            Log.e(TAG, "intent is not available!");
+        }
+    }
+
+    /**
+     * 小米 V6 版本 ROM权限申请
+     */
+    public static void goToMiuiPermissionActivity_V6(Context context) {
+        Intent intent = new Intent("miui.intent.action.APP_PERM_EDITOR");
+        intent.setClassName("com.miui.securitycenter", "com.miui.permcenter.permissions.AppPermissionsEditorActivity");
+        intent.putExtra("extra_pkgname", context.getPackageName());
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if (isIntentAvailable(context, intent)) {
+            startActivityForResult(context, intent);
+        } else {
+            Log.e(TAG, "Intent is not available!");
+        }
+    }
+
+    /**
+     * 小米 V7 版本 ROM权限申请
+     */
+    public static void goToMiuiPermissionActivity_V7(Context context) {
+        Intent intent = new Intent("miui.intent.action.APP_PERM_EDITOR");
+        intent.setClassName("com.miui.securitycenter", "com.miui.permcenter.permissions.AppPermissionsEditorActivity");
+        intent.putExtra("extra_pkgname", context.getPackageName());
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if (isIntentAvailable(context, intent)) {
+            startActivityForResult(context, intent);
+        } else {
+            goToMiuiPermissionActivity_V8(context);// 兼容我的miui7开发版 我的com.miui.securitycenter的app升级成了2.0.5了，只能用v8的代码运行
+        }
+    }
+
+    /**
+     * 小米 V8 版本 ROM权限申请
+     */
+    public static void goToMiuiPermissionActivity_V8(Context context) {
+        Intent intent = new Intent("miui.intent.action.APP_PERM_EDITOR");
+        intent.setClassName("com.miui.securitycenter", "com.miui.permcenter.permissions.PermissionsEditorActivity");
+        intent.putExtra("extra_pkgname", context.getPackageName());
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if (isIntentAvailable(context, intent)) {
+            startActivityForResult(context, intent);
+        } else {
+            intent = new Intent("miui.intent.action.APP_PERM_EDITOR");
+            intent.setPackage("com.miui.securitycenter");
+            intent.putExtra("extra_pkgname", context.getPackageName());
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if (isIntentAvailable(context, intent)) {
+                startActivityForResult(context, intent);
+            } else {
+                Log.e(TAG, "Intent is not available!");
+            }
+        }
+    }
+
+    private static boolean isIntentAvailable(Context cxt, Intent intent) {
         PackageManager pm = cxt.getPackageManager();
         if (pm == null) {
             return false;
@@ -111,6 +173,13 @@ public final class MIUIUtils {
         List<ResolveInfo> list = pm.queryIntentActivities(
                 intent, PackageManager.MATCH_DEFAULT_ONLY);
         return list != null && list.size() > 0;
+    }
+
+    private static void startActivityForResult(Context context, Intent intent) {
+        if (context instanceof Activity) {
+            Activity a = (Activity) context;
+            a.startActivityForResult(intent, 2);
+        }
     }
 
     public static class BuildProperties {
