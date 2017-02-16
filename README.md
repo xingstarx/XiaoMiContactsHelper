@@ -3,7 +3,9 @@
 
 ## 效果
 
-![Screenshot](art/xiaomicontacts_2017_02_16_001.png)![Screenshot](art/xiaomicontacts_2017_02_16_002.png)![Screenshot](art/xiaomicontacts_2017_02_16_003.png)
+<img src="art/xiaomicontacts_2017_02_16_001.png" width="220">
+<img src="art/xiaomicontacts_2017_02_16_002.png" width="220">
+<img src="art/xiaomicontacts_2017_02_16_003.png" width="220">
 
 ## 目的
 写这个app的目的，最主要的就是为了删除小米手机上的重复的联系人。也是为了用的省心。
