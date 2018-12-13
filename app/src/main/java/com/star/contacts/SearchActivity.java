@@ -5,22 +5,16 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.miguelcatalan.materialsearchview.MaterialSearchView;
+import com.star.contacts.base.BaseActivity;
 import com.star.contacts.model.Contact;
 import com.star.contacts.util.MIUIUtils;
 
@@ -43,7 +38,7 @@ import pub.devrel.easypermissions.EasyPermissions;
  * Created by xiongxingxing on 17/1/16.
  */
 
-public class SearchActivity extends AppCompatActivity implements MaterialSearchView.OnQueryTextListener {
+public class SearchActivity extends BaseActivity implements MaterialSearchView.OnQueryTextListener {
     public static final String TAG = "SearchActivity";
     private static final String ARG_CONTACTS = "contacts";
     private RecyclerView mRecyclerView;

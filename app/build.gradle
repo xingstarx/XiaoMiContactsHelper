@@ -57,5 +57,7 @@ dependencies {
     compile 'com.github.medyo:android-about-page:1.1.1'
     compile 'pub.devrel:easypermissions:0.2.1'
     compile 'com.github.xingstarx:MaterialSearchView:v1.4.2'
+    compile 'com.umeng.sdk:common:latest.integration'
+    compile 'com.umeng.sdk:analytics:latest.integration'
     testCompile 'junit:junit:4.12'
 }
